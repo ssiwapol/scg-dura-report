@@ -105,7 +105,7 @@ def sendmail(config, run):
     downloadurl = "https://storage.googleapis.com" + "/".join(config['reportpath1'].split("/")[1:])
     # prepare text
     body_header = '''Report on %s
-For dashboard please follow <a href="%s" target="_blank">link</a>
+Dashboard please follow <a href="%s" target="_blank">link</a>
     ''' % (td, dashboard_url)
 
     body_footer = '''Outlet report can download <a href="%s">here</a>
@@ -129,11 +129,10 @@ SCG Cement-Building Materials Co., Ltd.
     requests.post(url_request, json=input_json, headers=headers)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
     logtxt('Send mail (%.1f mins)' % total_mins, run)
-    
-def main():
+
+
+def main(config):
     # set variables
-    with open("config.yaml") as f:
-        config = yaml.load(f, Loader=yaml.Loader)
     run = config['run']
     service_json = config['gcpauth']
     with gcs_download(config['sqlpath1'], service_json) as sql_file:
@@ -152,4 +151,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with open("config.yaml") as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+    main(config)

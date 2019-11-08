@@ -6,3 +6,4 @@ channel/*.json
 channel/config.yaml
 channel/__pycache__/
 channel/env/
+*.json

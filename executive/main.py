@@ -183,7 +183,7 @@ def sendmail(config, run):
 
     ''' % td
 
-    body_footer = '''For detail dashboard please follow <a href="%s" target="_blank">link</a>
+    body_footer = '''Dashboard please follow <a href="%s" target="_blank">link</a>
 
 Best Regards,
 Digital Intelligence, Digital Office
@@ -204,11 +204,10 @@ SCG Cement-Building Materials Co., Ltd.
     requests.post(url_request, json=input_json, headers=headers)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
     logtxt('Send mail (%.1f mins)' % total_mins, run)
-    
-def main():
+
+
+def main(config, fontpath):
     # set variables
-    with open("config.yaml") as f:
-        config = yaml.load(f, Loader=yaml.Loader)
     run = config['run']
     service_json = config['gcpauth']
     with gcs_download(config['sqlpath1'], service_json) as sql_file:
@@ -217,7 +216,7 @@ def main():
     start_time = datetime.datetime.now()
     logtxt("Start process", run)
     try:
-        genfig(query1, config['reportpath1'], config['fontpath'], service_json, run)
+        genfig(query1, config['reportpath1'], fontpath, service_json, run)
         sendmail(config, run)
     except Exception as e:
         logtxt("ERROR (%s)" % str(e), run, True)
@@ -227,4 +226,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with open("config.yaml") as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+    main(config, "arial.ttf")
