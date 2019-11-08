@@ -1,4 +1,5 @@
 import base64
+import logging
 
 import yaml
 
@@ -16,3 +17,5 @@ def dura_pubsub(event, context):
         with open("executive/config.yaml") as f:
             config = yaml.load(f, Loader=yaml.Loader)
         executive.main(config, "executive/arial.ttf")
+    else:
+        logging.error("No function")
