@@ -1,6 +1,8 @@
 executive/*.json
 executive/config.yaml
 executive/__pycache__/
+executive/env/
 channel/*.json
 channel/config.yaml
 channel/__pycache__/
+channel/env/

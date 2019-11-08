@@ -2,18 +2,14 @@
 import io
 import datetime
 import zipfile
+import logging
 
 import requests
-from pytz import timezone
 import yaml
-import seaborn as sns
-import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
-from google.oauth2 import service_account
-from google.cloud import storage
+from pytz import timezone
 import pandas as pd
+from google.cloud import storage
 from google.cloud import bigquery
-import logging
 
 
 def gcs_download(gcspath, service_json="None"):
