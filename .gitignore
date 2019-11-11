@@ -7,3 +7,4 @@ channel/*.yaml
 channel/__pycache__/
 channel/env/
 *.json
+*.yaml

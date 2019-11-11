@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+import os
+import argparse
 import base64
 import logging
 
@@ -7,15 +10,21 @@ from channel.main import main as channel
 from executive.main import main as executive
 
 
-def main(event, context):
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--local", action="store_true", help="run locally")
+args = parser.parse_args()
+if args.local:
+    with open("config.yaml") as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+    for k, v in config.items():
+        os.environ[k] = v
+
+
+def dura_pubsub(event, context):
     pubsub_message = base64.b64decode(event['data']).decode('utf-8')
     if event and pubsub_message=="channel":
-        with open("channel/config.yaml") as f:
-            channel_config = yaml.load(f, Loader=yaml.Loader)
-        channel(channel_config)
+        channel()
     elif event and pubsub_message=="executive":
-        with open("executive/config.yaml") as f:
-            executive_config = yaml.load(f, Loader=yaml.Loader)
-        executive(executive_config, "executive/arial.ttf")
+        executive("executive/arial.ttf")
     else:
         logging.error("No function")

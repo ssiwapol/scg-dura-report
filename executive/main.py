@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+import os
 import io
 import datetime
+import argparse
 import logging
 
 import requests
@@ -14,8 +16,13 @@ from google.cloud import storage
 from google.cloud import bigquery
 
 
-def logtxt(log, run="local", error=False):
-    if run == "local":
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--local", action="store_true", help="run locally")
+args = parser.parse_args()
+
+
+def logtxt(log, runlocal=False, error=False):
+    if runlocal:
         print("ERROR: %s" % log) if error else print(log)
     else:
         logging.error(log) if error else logging.info(log)
@@ -137,12 +144,12 @@ def plt_bargroup(ax, df, title, font):
     ax.set_title(title, fontsize=16, fontweight="bold")
 
 
-def genfig(query, gcspath, fontpath, service_json, run):
+def genfig(query, gcspath, fontpath, service_json, runlocal):
     '''load data'''
     start = datetime.datetime.now()
     df = gbq_load(query, service_json)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Load data from GBQ (%.1f mins)' % total_mins, run)
+    logtxt('Load data from GBQ (%.1f mins)' % total_mins, runlocal)
     '''create figure'''
     # set styling
     start = datetime.datetime.now()
@@ -154,7 +161,7 @@ def genfig(query, gcspath, fontpath, service_json, run):
     ax1 = fig.add_subplot(211)
     plt_bargroup(ax1, df, "Sales Summary", fontpath)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Generate figure (%.1f mins)' % total_mins, run)
+    logtxt('Generate figure (%.1f mins)' % total_mins, runlocal)
     '''upload to gcs'''
     start = datetime.datetime.now()
     figfile = io.BytesIO()
@@ -162,22 +169,22 @@ def genfig(query, gcspath, fontpath, service_json, run):
     figfile.seek(0)
     gcs_upload(figfile, gcspath, service_json, "image/png")
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Upload to GCS (%.1f mins)' % total_mins, run)
+    logtxt('Upload to GCS (%.1f mins)' % total_mins, runlocal)
 
 
-def sendmail(config, run):
+def sendmail(webapi, apikey, mailpath, reportpath1, service_json="None", runlocal=False):
     start = datetime.datetime.now()
     dtnow = datetime.datetime.now(timezone('Asia/Bangkok'))
     td = dtnow.strftime("%d %b %Y")
     # prepare data
-    url_request = config["email_api"]
-    headers ={"apikey": config["email_apikey"]}
-    with gcs_download(config['mailpath'], config["gcpauth"]) as f:
+    url_request = webapi
+    headers ={"apikey": apikey}
+    with gcs_download(mailpath, service_json) as f:
         mail_data = yaml.load(f, Loader=yaml.Loader)
         mail_from = mail_data['from']
         mail_to = mail_data['to']
         dashboard_url = mail_data['dashboard_url']
-    imgurl1 = '/'.join(config['reportpath1'].split("/")[1:])
+    imgurl1 = '/'.join(reportpath1.split("/")[1:])
     # prepare text
     body_header = '''Report on %s
 
@@ -203,29 +210,36 @@ SCG Cement-Building Materials Co., Ltd.
 
     requests.post(url_request, json=input_json, headers=headers)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Send mail (%.1f mins)' % total_mins, run)
+    logtxt('Send mail (%.1f mins)' % total_mins, runlocal)
 
 
-def main(config, fontpath):
+def main(fontpath):
     # set variables
-    run = config['run']
-    service_json = config['gcpauth']
-    with gcs_download(config['sqlpath1'], service_json) as sql_file:
+    runlocal = args.local
+    service_json = os.environ['gcpauth']
+    with gcs_download(os.environ['executive_sqlpath1'], service_json) as sql_file:
         query1 = sql_file.read().decode('ascii')
+    reportpath1 = os.environ['executive_reportpath1']
+    email_api = os.environ["email_api"]
+    email_apikey = os.environ["email_apikey"]
+    mailpath = os.environ['executive_mailpath']
     # run
     start_time = datetime.datetime.now()
-    logtxt("Start process", run)
+    logtxt("Start process", runlocal)
     try:
-        genfig(query1, config['reportpath1'], fontpath, service_json, run)
-        sendmail(config, run)
+        genfig(query1, reportpath1, fontpath, service_json, runlocal)
+        sendmail(email_api, email_apikey, mailpath, reportpath1, service_json, runlocal)
     except Exception as e:
-        logtxt("ERROR (%s)" % str(e), run, True)
+        logtxt("ERROR (%s)" % str(e), runlocal, True)
     end_time = datetime.datetime.now()
     total_mins = (end_time - start_time).total_seconds() / 60
-    logtxt('Total time (%.1f mins)' % total_mins, run)
+    logtxt('Total time (%.1f mins)' % total_mins, runlocal)
 
 
 if __name__ == "__main__":
-    with open("config.yaml") as f:
-        config = yaml.load(f, Loader=yaml.Loader)
-    main(config, "arial.ttf")
+    if args.local:
+        with open("config.yaml") as f:
+            config = yaml.load(f, Loader=yaml.Loader)
+        for k, v in config.items():
+            os.environ[k] = v
+    main(fontpath="arial.ttf")
