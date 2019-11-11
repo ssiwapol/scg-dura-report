@@ -72,7 +72,7 @@ def loadtoexcel(query, excelpath, rawfilename, reportpath, service_json="None", 
     file_outlet_name = excelpath.split("/")[-1]
     file_outlet = gcs_download(excelpath, service_json)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Load excel file from GCS (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Channel] Load excel file from GCS (%.1f mins)' % total_mins, runlocal)
     # load data from Google BigQuery
     start = datetime.datetime.now()
     df = gbq_load(query, service_json)
@@ -80,7 +80,7 @@ def loadtoexcel(query, excelpath, rawfilename, reportpath, service_json="None", 
     df.to_csv(file_raw, encoding='utf-8', index=False)
     file_raw.seek(0)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Load data from GBQ (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Channel] Load data from GBQ (%.1f mins)' % total_mins, runlocal)
     # zip file
     start = datetime.datetime.now()
     zip_buffer = io.BytesIO()
@@ -89,12 +89,12 @@ def loadtoexcel(query, excelpath, rawfilename, reportpath, service_json="None", 
         zip_file.writestr(rawfilename, file_raw.getvalue())
     zip_buffer.seek(0)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Zip file (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Channel] Zip file (%.1f mins)' % total_mins, runlocal)
     # upload to Google Cloud Storage
     start = datetime.datetime.now()
     gcs_upload(zip_buffer, reportpath, service_json, True)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Upload to GCS (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Channel] Upload to GCS (%.1f mins)' % total_mins, runlocal)
 
 
 def sendmail(webapi, apikey, mailpath, reportpath1, service_json="None", runlocal=False):
@@ -135,7 +135,7 @@ SCG Cement-Building Materials Co., Ltd.
 
     requests.post(url_request, json=input_json, headers=headers)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Send mail (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Channel] Send mail (%.1f mins)' % total_mins, runlocal)
 
 
 def main():
@@ -152,15 +152,15 @@ def main():
     mailpath = os.environ['channel_mailpath']
     # run
     start_time = datetime.datetime.now()
-    logtxt("Start process", runlocal)
+    logtxt("[Channel] Start process", runlocal)
     try:
         loadtoexcel(query1, excelpath1, rawfilename1, reportpath1, service_json, runlocal)
         sendmail(email_api, email_apikey, mailpath, reportpath1, service_json, runlocal)
     except Exception as e:
-        logtxt("ERROR (%s)" % str(e), runlocal, True)
+        logtxt("[Channel] ERROR (%s)" % str(e), runlocal, True)
     end_time = datetime.datetime.now()
     total_mins = (end_time - start_time).total_seconds() / 60
-    logtxt('Total time (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Channel] Total time (%.1f mins)' % total_mins, runlocal)
 
 
 if __name__ == "__main__":

@@ -149,7 +149,7 @@ def genfig(query, gcspath, fontpath, service_json, runlocal):
     start = datetime.datetime.now()
     df = gbq_load(query, service_json)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Load data from GBQ (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Executive] Load data from GBQ (%.1f mins)' % total_mins, runlocal)
     '''create figure'''
     # set styling
     start = datetime.datetime.now()
@@ -161,7 +161,7 @@ def genfig(query, gcspath, fontpath, service_json, runlocal):
     ax1 = fig.add_subplot(211)
     plt_bargroup(ax1, df, "Sales Summary", fontpath)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Generate figure (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Executive] Generate figure (%.1f mins)' % total_mins, runlocal)
     '''upload to gcs'''
     start = datetime.datetime.now()
     figfile = io.BytesIO()
@@ -169,7 +169,7 @@ def genfig(query, gcspath, fontpath, service_json, runlocal):
     figfile.seek(0)
     gcs_upload(figfile, gcspath, service_json, "image/png")
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Upload to GCS (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Executive] Upload to GCS (%.1f mins)' % total_mins, runlocal)
 
 
 def sendmail(webapi, apikey, mailpath, reportpath1, service_json="None", runlocal=False):
@@ -210,7 +210,7 @@ SCG Cement-Building Materials Co., Ltd.
 
     requests.post(url_request, json=input_json, headers=headers)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('Send mail (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Executive] Send mail (%.1f mins)' % total_mins, runlocal)
 
 
 def main(fontpath):
@@ -225,15 +225,15 @@ def main(fontpath):
     mailpath = os.environ['executive_mailpath']
     # run
     start_time = datetime.datetime.now()
-    logtxt("Start process", runlocal)
+    logtxt("[Executive] Start process", runlocal)
     try:
         genfig(query1, reportpath1, fontpath, service_json, runlocal)
         sendmail(email_api, email_apikey, mailpath, reportpath1, service_json, runlocal)
     except Exception as e:
-        logtxt("ERROR (%s)" % str(e), runlocal, True)
+        logtxt("[Executive] ERROR (%s)" % str(e), runlocal, True)
     end_time = datetime.datetime.now()
     total_mins = (end_time - start_time).total_seconds() / 60
-    logtxt('Total time (%.1f mins)' % total_mins, runlocal)
+    logtxt('[Executive] Total time (%.1f mins)' % total_mins, runlocal)
 
 
 if __name__ == "__main__":
