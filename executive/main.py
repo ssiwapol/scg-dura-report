@@ -14,6 +14,13 @@ from google.cloud import storage
 from google.cloud import bigquery
 
 
+def logtxt(log, run="local", error=False):
+    if run == "local":
+        print("ERROR: %s" % log) if error else print(log)
+    else:
+        logging.error(log) if error else logging.info(log)
+
+
 def gcs_download(gcspath, service_json="None"):
     if service_json == "None":
         client = storage.Client()
@@ -52,13 +59,6 @@ def gbq_load(query, service_json="None"):
         client = bigquery.Client.from_service_account_json(service_json)
     df = client.query(query).to_dataframe()
     return df
-
-
-def logtxt(log, run="local", error=False):
-    if run == "local":
-        print("ERROR: %s" % log) if error else print(log)
-    else:
-        logging.info(log) if error is True else logging.error(log)
 
 
 def autolabel(ax):

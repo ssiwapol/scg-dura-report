@@ -1,9 +1,9 @@
 executive/*.json
-executive/config.yaml
+executive/*.yaml
 executive/__pycache__/
 executive/env/
 channel/*.json
-channel/config.yaml
+channel/*.yaml
 channel/__pycache__/
 channel/env/
 *.json
