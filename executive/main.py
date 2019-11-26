@@ -21,7 +21,7 @@ args = parser.parse_args()
 
 def logtxt(log, runlocal=False, error=False):
     if runlocal:
-        print("ERROR: %s" % log) if error else print(log)
+        print("ERROR!! %s" % log) if error else print(log)
     else:
         logging.error(log) if error else logging.info(log)
 
@@ -108,19 +108,18 @@ def sendmail(webapi, apikey, mailpath, reportpath1, service_json="None", runloca
         mail_data = yaml.load(f, Loader=yaml.Loader)
         mail_from = mail_data['from']
         mail_to = mail_data['to']
-    downloadurl = "https://storage.googleapis.com" + "/".join(reportpath1.split("/")[1:])
+    # downloadurl = "https://storage.googleapis.com" + "/".join(reportpath1.split("/")[1:])
+    attachurl = "/".join(reportpath1.split("/")[1:])
     # prepare text
-    subject = "[MTB Executive] Report on %s" % td,
+    subject = "[MTB Executive] Report on %s" % td
     body_header = '''Report on %s
+Please see attached file
     ''' % td
 
-    body_footer = '''Executive report can download <a href="%s">here</a>
-
-Best Regards,
+    body_footer = '''Best Regards,
 Digital Intelligence, Digital Office
 SCG Cement-Building Materials Co., Ltd.
-
-    ''' % downloadurl
+    '''
 
     input_json = {
         "from": mail_from,
@@ -129,12 +128,14 @@ SCG Cement-Building Materials Co., Ltd.
         "body_header": body_header,
         "body_footer": body_footer,
         "img_list": [],
-        "attach_list": []
+        "attach_list": [attachurl]
     }
-
-    requests.post(url_request, json=input_json, headers=headers)
+    r = requests.post(url_request, json=input_json, headers=headers)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('[Executive] Send mail (%.1f mins)' % total_mins, runlocal)
+    if r.status_code == 200:
+        logtxt('[Executive] Send mail (%.1f mins)' % total_mins, runlocal)
+    else:
+        logtxt('[Executive] ERROR Send mail: %s (%.1f mins)' % (r.status_code, total_mins), runlocal, True)
 
 
 def main():

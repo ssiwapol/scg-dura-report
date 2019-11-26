@@ -22,7 +22,10 @@ if args.local:
 
 def dura_pubsub(event, context):
     pubsub_message = base64.b64decode(event['data']).decode('utf-8')
-    if event and pubsub_message=="channel":
+    if event and pubsub_message=="all":
+        channel("channel/arial.ttf")
+        executive()
+    elif event and pubsub_message=="channel":
         channel("channel/arial.ttf")
     elif event and pubsub_message=="executive":
         executive()

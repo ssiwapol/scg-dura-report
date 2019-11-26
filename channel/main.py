@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 def logtxt(log, runlocal=False, error=False):
     if runlocal:
-        print("ERROR: %s" % log) if error else print(log)
+        print("ERROR!! %s" % log) if error else print(log)
     else:
         logging.error(log) if error else logging.info(log)
 
@@ -223,7 +223,7 @@ def sendmail(webapi, apikey, mailpath, reportpath1, reportpath2, service_json="N
 
     ''' % (td)
 
-    body_footer = '''Outlet report can download <a href="%s">here</a>
+    body_footer = '''Outlet report can be downloaded <a href="%s">here</a>
 
 Best Regards,
 Digital Intelligence, Digital Office
@@ -241,9 +241,12 @@ SCG Cement-Building Materials Co., Ltd.
         "attach_list": []
     }
 
-    requests.post(url_request, json=input_json, headers=headers)
+    r = requests.post(url_request, json=input_json, headers=headers)
     total_mins = (datetime.datetime.now() - start).total_seconds() / 60
-    logtxt('[Channel] Send mail (%.1f mins)' % total_mins, runlocal)
+    if r.status_code == 200:
+        logtxt('[Channel] Send mail (%.1f mins)' % total_mins, runlocal)
+    else:
+        logtxt('[Channel] ERROR Send mail: %s (%.1f mins)' % (r.status_code, total_mins), runlocal, True)
 
 
 def main(fontpath):
